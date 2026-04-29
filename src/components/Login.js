@@ -39,25 +39,51 @@ import { useNavigate } from "react-router-dom";
     }
 
     return (
-        <div className="bg-gray-100 h-screen flex items-center justify-center">
-            <div className="flex items-center flex-col bg-white p-8 rounded shadow-md">
-                <input
-                    type="text"
-                    name="usuario"
-                    placeholder="Digite o seu usuario"
-                    onChange={(e) => setUsuario(e.target.value)}
-                    className="mb-4 p-2 border border-gray-300 rounded" />
+<div className="min-h-screen bg-gray-100 flex items-center justify-center">
+  <div className="w-full max-w-md bg-white rounded-2xl shadow-lg overflow-hidden">
+    
+    {/* Header */}
+    <div className="bg-blue-900 text-white text-center py-6">
+      <h1 className="text-xl font-semibold tracking-wide">
+        Sistema CBMSC
+      </h1>
+      <p className="text-sm text-gray-200 mt-1">
+        Acesso ao painel
+      </p>
+    </div>
 
-                <input
-                    type="password"
-                    name="senha"
-                    placeholder="Digite sua senha"
-                    onChange={(e) => setSenha(e.target.value)}
-                    className="mb-4 p-2 border border-gray-300 rounded" />
+    {/* Formulário */}
+    <div className="p-8 flex flex-col gap-4">
+      <input
+        type="text"
+        name="usuario"
+        placeholder="Usuário"
+        onChange={(e) => setUsuario(e.target.value)}
+        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-900 transition"
+      />
 
-                <button onClick={fazerLogin}>Entrar</button>
-            </div>
-        </div>
+      <input
+        type="password"
+        name="senha"
+        placeholder="Senha"
+        onChange={(e) => setSenha(e.target.value)}
+        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-900 transition"
+      />
+
+      <button
+        onClick={fazerLogin}
+        className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-semibold py-3 rounded-lg transition duration-200"
+      >
+        Entrar
+      </button>
+    </div>
+
+    {/* Rodapé */}
+    <div className="bg-gray-50 text-center py-3 text-sm text-gray-500">
+      © 2026 - Sistema de Controle de Postos CBMSC. Todos os direitos reservados. 
+    </div>
+  </div>
+</div>
     )
 
 }

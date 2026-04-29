@@ -15,7 +15,6 @@ function App() {
         <Route path='/' element={<Login />} />
         <Route path='/dashboard' element={
           <Autenticacao>
-            {/*Definir o dashboard como filho */}
             < Dashboard />  
           </Autenticacao>
         } />
