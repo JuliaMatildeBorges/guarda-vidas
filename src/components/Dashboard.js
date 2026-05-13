@@ -6,6 +6,16 @@ export function Dashboard() {
     const [usuario, setUsuario] = useState(null);
 
 
+    const [postos, setPostos] = useState([]);
+
+    
+    useEffect(() => {
+        fetch("http://localhost:8080/posto")
+            .then((response) => response.json())
+            .then((data) => setPostos(data));
+    }, []);
+
+
     const logout = () => {
         localStorage.removeItem('token')
         alert("Bye")
@@ -45,18 +55,25 @@ export function Dashboard() {
                 <nav>
                     <Link to="/" onClick={logout}>Logout</Link>
                     <Link to="/cadastro-posto">Cadastrar Posto</Link>
+
                 </nav>
             </div>
-            
-        <div className="bg-gray-100 h-screen flex items-center justify-center">
-            <div className="flex grid grid-cols-3 gap-4">
-                <button className="bg-red-500 p-2 border border-gray-500 rounded-xl w-50 text-white hover hover:bg-red-800">POSTO 1</button>
-                <button>POSTO 2</button>
-                <button>POSTO 3</button>
-                <button>POSTO 4</button>
-                <button>POSTO 5</button>
+
+            <div className="bg-gray-100 h-screen flex items-center justify-center">
+                <h1>Postos</h1>
+
+                {postos.map((posto) => (
+                    <div key={posto.id}>
+                        <h2>{posto.nome}</h2>
+
+                        <Link to={`/posto/${posto.id}`}>
+                            Acessar
+                        </Link>
+                    </div>
+                ))}
+
+
             </div>
-        </div>
-        </div>
+        </div >
     )
 }
