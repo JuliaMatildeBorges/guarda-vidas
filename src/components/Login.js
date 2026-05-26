@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useNavigate } from "react-router-dom";
 
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
 
     export function Login(){    
     const navigate = useNavigate()
@@ -14,18 +15,19 @@ import { useNavigate } from "react-router-dom";
         
         try {
 
-            const resposta = await fetch('https://dummyjson.com/auth/login', {
+            const resposta = await fetch(`${API_URL}/auth/login`, {
                 method: 'POST', 
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
-                    username: usuario,
-                    password: senha
+                    email: usuario,
+                    senha: senha
                 })
             })
 
             if(resposta.ok){
                 const dados =  await resposta.json(); 
-                localStorage.setItem('token', dados.accessToken)
+                localStorage.setItem('token', dados.token)
+                localStorage.setItem('tipo', dados.tipo)
                 alert('Login realizado com sucesso!')
                 navigate('/dashboard')
             } else {
@@ -57,7 +59,7 @@ import { useNavigate } from "react-router-dom";
       <input
         type="text"
         name="usuario"
-        placeholder="Usuário"
+        placeholder="E-mail"
         onChange={(e) => setUsuario(e.target.value)}
         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-900 transition"
       />

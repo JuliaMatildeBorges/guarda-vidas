@@ -1,6 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
+import { Navigate } from "react-router-dom";
 
-const API = "http://localhost:8080/postos";
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
+const API = `${API_URL}/postos`;
+
+const authHeaders = () => ({
+  Authorization: `Bearer ${localStorage.getItem("token")}`,
+});
 
 // ── Icons ──────────────────────────────────────────────────────────────────
 const Icon = ({ d, size = 18, strokeWidth = 2, className = "" }) => (
@@ -107,7 +113,7 @@ function FormModal({ editData, onClose, onSaved, showToast }) {
       const method = isEditing ? "PUT" : "POST";
       const res    = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify(form),
       });
       if (!res.ok) throw new Error();
@@ -264,6 +270,7 @@ function SkeletonRow() {
 
 // ── Main ───────────────────────────────────────────────────────────────────
 export function CadastroPosto() {
+  const tipoUsuario = localStorage.getItem("tipo");
   const [postos, setPostos]             = useState([]);
   const [loading, setLoading]           = useState(false);
   const [search, setSearch]             = useState("");
@@ -280,7 +287,7 @@ export function CadastroPosto() {
   const fetchPostos = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(API);
+      const res = await fetch(API, { headers: authHeaders() });
       if (!res.ok) throw new Error();
       setPostos(await res.json());
     } catch {
@@ -294,7 +301,7 @@ export function CadastroPosto() {
 
   const handleDelete = async () => {
     try {
-      const res = await fetch(`${API}/${deleteTarget.id}`, { method: "DELETE" });
+      const res = await fetch(`${API}/${deleteTarget.id}`, { method: "DELETE", headers: authHeaders() });
       if (!res.ok) throw new Error();
       showToast("Posto removido com sucesso.");
       setDeleteTarget(null);
@@ -312,6 +319,10 @@ export function CadastroPosto() {
     p.nome.toLowerCase().includes(search.toLowerCase()) ||
     (p.descricao || "").toLowerCase().includes(search.toLowerCase())
   );
+
+  if (tipoUsuario !== "ADMIN") {
+    return <Navigate to="/dashboard" />;
+  }
 
   return (
     <>

@@ -36,3 +36,21 @@
     transform: rotate(360deg);
   }
 }
+
+.admin-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.admin-tabs {
+    min-width: 240px;
+}
+
+.posto-card {
+    transition: .2s ease;
+}
+
+.posto-card:hover {
+    transform: translateY(-2px);
+}
