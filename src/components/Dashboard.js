@@ -21,8 +21,11 @@ function hora(valor) {
 function StatusPill({ status }) {
     const meta = statusMeta[status] || statusMeta.VERMELHO;
     return (
-        <span className="status-pill" style={{ background: meta.bg, color: meta.color }}>
-            <span className="dot" style={{ background: meta.color }} />
+        <span
+            className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold whitespace-nowrap"
+            style={{ background: meta.bg, color: meta.color }}
+        >
+            <span className="w-2 h-2 rounded-full" style={{ background: meta.color }} />
             {meta.label}
         </span>
     );
@@ -30,14 +33,21 @@ function StatusPill({ status }) {
 
 function FotoPreview({ foto, onDelete }) {
     if (!foto) {
-        return <div className="foto placeholder">Sem foto</div>;
+        return (
+            <div className="aspect-[4/3] border border-gray-300 rounded bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-400">
+                Sem foto
+            </div>
+        );
     }
-
     return (
-        <div className="foto">
-            <img src={`${API_URL}${foto.url}`} alt={foto.nome} />
+        <div className="aspect-[4/3] border border-gray-300 rounded overflow-hidden relative bg-gray-100">
+            <img src={`${API_URL}${foto.url}`} alt={foto.nome} className="w-full h-full object-cover" />
             {onDelete && (
-                <button type="button" className="delete-photo" onClick={() => onDelete(foto.id)}>
+                <button
+                    type="button"
+                    onClick={() => onDelete(foto.id)}
+                    className="absolute right-1.5 bottom-1.5 bg-red-600 text-white text-[11px] font-bold rounded px-2 py-1 border-0 cursor-pointer"
+                >
                     Excluir
                 </button>
             )}
@@ -46,7 +56,6 @@ function FotoPreview({ foto, onDelete }) {
 }
 
 function AdminPostoCard({ item, onDeletePhoto, abaAtiva }) {
-
     const dados = item[abaAtiva];
 
     const borderStatus = {
@@ -57,54 +66,62 @@ function AdminPostoCard({ item, onDeletePhoto, abaAtiva }) {
 
     return (
         <article
-            className="posto-card"
-            style={{
-                border: `2px solid ${borderStatus[dados.status] || "#e5e7eb"}`
-            }}
+            className="bg-white rounded shadow-sm overflow-hidden"
+            style={{ border: `2px solid ${borderStatus[dados.status] || "#e5e7eb"}` }}
         >
-            <header>
-                <div>
-                    <p className="eyebrow">Posto</p>
-                    <h2>{item.posto}</h2>
-                </div>
+            {/* Barra colorida superior */}
+            <div className="h-[3px]" style={{ background: borderStatus[dados.status] || "#e5e7eb" }} />
 
-                <StatusPill status={dados.status} />
-            </header>
-
-            <section className="check-panel active">
-                <div className="check-head">
+            <div className="p-4">
+                <header className="flex justify-between items-start gap-3 mb-4">
                     <div>
-                        <p className="eyebrow">
-                            {abaAtiva === "checkin" ? "Entrada" : "Saída"}
-                        </p>
-
-                        <strong>{hora(dados.horario)}</strong>
+                        <p className="text-[11px] font-bold tracking-widest uppercase text-gray-500 mb-0.5">Posto</p>
+                        <h2 className="text-base font-bold text-gray-900 m-0" style={{ fontFamily: "'Georgia', serif" }}>
+                            {item.posto}
+                        </h2>
                     </div>
-                </div>
+                    <StatusPill status={dados.status} />
+                </header>
 
-                <p className="muted">
-                    {dados.usuario || "Nenhum registro hoje"}
-                </p>
-
-                <div className="photos">
-                    {(dados.fotos?.length ? dados.fotos : [null]).map((foto, index) => (
-                        <FotoPreview
-                            key={foto?.id || index}
-                            foto={foto}
-                            onDelete={foto ? onDeletePhoto : null}
-                        />
-                    ))}
-                </div>
-
-                {abaAtiva === "checkout" && dados.horario && (
-                    <div className="metrics">
-                        <span>Prev. manhã: {dados.prevencoesManha ?? 0}</span>
-                        <span>Prev. tarde: {dados.prevencoesTarde ?? 0}</span>
-                        <span>Água-viva manhã: {dados.lesoesAguaVivaManha ?? 0}</span>
-                        <span>Água-viva tarde: {dados.lesoesAguaVivaTarde ?? 0}</span>
+                <div className="border border-blue-200 rounded bg-blue-50/40 p-3" style={{ boxShadow: "inset 3px 0 0 #2563eb" }}>
+                    <div className="flex justify-between items-center gap-2 mb-1">
+                        <div>
+                            <p className="text-[11px] font-bold tracking-widest uppercase text-gray-500 mb-0.5">
+                                {abaAtiva === "checkin" ? "Entrada" : "Saída"}
+                            </p>
+                            <strong className="text-gray-900 text-sm">{hora(dados.horario)}</strong>
+                        </div>
                     </div>
-                )}
-            </section>
+
+                    <p className="text-xs text-gray-500 mt-1">{dados.usuario || "Nenhum registro hoje"}</p>
+
+                    <div className="grid grid-cols-3 gap-2 mt-2">
+                        {(dados.fotos?.length ? dados.fotos : [null]).map((foto, index) => (
+                            <FotoPreview
+                                key={foto?.id || index}
+                                foto={foto}
+                                onDelete={foto ? onDeletePhoto : null}
+                            />
+                        ))}
+                    </div>
+
+                    {abaAtiva === "checkout" && dados.horario && (
+                        <div className="grid grid-cols-2 gap-1.5 mt-3">
+                            {[
+                                ["Prev. manhã", dados.prevencoesManha ?? 0],
+                                ["Prev. tarde", dados.prevencoesTarde ?? 0],
+                                ["Água-viva manhã", dados.lesoesAguaVivaManha ?? 0],
+                                ["Água-viva tarde", dados.lesoesAguaVivaTarde ?? 0],
+                            ].map(([label, valor]) => (
+                                <div key={label} className="bg-white border border-gray-200 rounded px-2 py-1.5">
+                                    <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400 mb-0.5">{label}</p>
+                                    <p className="text-sm font-bold text-gray-800">{valor}</p>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
         </article>
     );
 }
@@ -175,61 +192,129 @@ function GuardaVidasPanel({ postos, showToast }) {
     };
 
     return (
-        <main className="page">
-            <section className="operator-panel">
-                <div>
-                    <p className="eyebrow">Operação diária</p>
-                    <h1>Selecione o posto e registre sua presença</h1>
-                    <p className="muted">Checkin até 08:00. Checkout regular somente após 19:00.</p>
+        <main className="px-4 py-8 max-w-xl mx-auto">
+            {/* Barra vermelha superior */}
+            <div className="h-[3px] rounded-t" style={{ background: "#C41E2A" }} />
+
+            <div className="bg-white border border-gray-300 rounded-b shadow-sm">
+                {/* Cabeçalho do painel */}
+                <div className="px-6 pt-5 pb-4 border-b border-gray-200 bg-gray-50">
+                    <p className="text-[11px] font-bold tracking-widest uppercase mb-0.5" style={{ color: "#C41E2A" }}>
+                        Operação diária
+                    </p>
+                    <h1 className="text-lg font-bold text-gray-900 m-0" style={{ fontFamily: "'Georgia', serif" }}>
+                        Registro de presença
+                    </h1>
+                    <p className="text-xs text-gray-500 mt-1">Checkin até 08:00 · Checkout regular somente após 19:00</p>
                 </div>
 
-                <div className="field">
-                    <label>Posto</label>
-                    <select value={postoId} onChange={(e) => setPostoId(e.target.value)}>
-                        <option value="">Escolha um posto</option>
-                        {postos.map((posto) => (
-                            <option key={posto.id} value={posto.id}>{posto.nome}</option>
-                        ))}
-                    </select>
-                </div>
-
-                <div className="segmented">
-                    <button className={acao === "checkin" ? "selected" : ""} onClick={() => setAcao("checkin")}>Checkin</button>
-                    <button className={acao === "checkout" ? "selected" : ""} onClick={() => setAcao("checkout")}>Checkout</button>
-                </div>
-
-                {acao === "checkout" && (
-                    <div className="form-grid">
-                        {[
-                            ["prevencoesManha", "Prevenções de manhã"],
-                            ["prevencoesTarde", "Prevenções de tarde"],
-                            ["lesoesAguaVivaManha", "Lesões água-viva manhã"],
-                            ["lesoesAguaVivaTarde", "Lesões água-viva tarde"],
-                        ].map(([campo, label]) => (
-                            <div className="field" key={campo}>
-                                <label>{label}</label>
-                                <input
-                                    type="number"
-                                    min="0"
-                                    value={form[campo]}
-                                    onChange={(e) => setForm((atual) => ({ ...atual, [campo]: e.target.value }))}
-                                />
-                            </div>
-                        ))}
+                <div className="px-6 py-5 flex flex-col gap-4">
+                    {/* Posto */}
+                    <div>
+                        <label className="block text-xs font-bold tracking-widest uppercase mb-1.5 text-gray-700">
+                            Posto
+                        </label>
+                        <select
+                            value={postoId}
+                            onChange={(e) => setPostoId(e.target.value)}
+                            className="w-full px-3 py-2.5 text-sm text-gray-900 bg-gray-100 border border-gray-300 rounded focus:outline-none focus:border-red-600 focus:bg-white focus:ring-2 focus:ring-red-100 transition-all"
+                        >
+                            <option value="">Escolha um posto</option>
+                            {postos.map((posto) => (
+                                <option key={posto.id} value={posto.id}>{posto.nome}</option>
+                            ))}
+                        </select>
                     </div>
-                )}
 
-                <div className="field">
-                    <label>Fotos ({fotos.length}/3)</label>
-                    <input type="file" accept="image/*" multiple onChange={selecionarFotos} />
+                    {/* Segmented checkin/checkout */}
+                    <div>
+                        <label className="block text-xs font-bold tracking-widest uppercase mb-1.5 text-gray-700">
+                            Ação
+                        </label>
+                        <div className="grid grid-cols-2 border border-gray-300 rounded overflow-hidden">
+                            {["checkin", "checkout"].map((op) => (
+                                <button
+                                    key={op}
+                                    type="button"
+                                    onClick={() => setAcao(op)}
+                                    className={`h-10 text-sm font-bold border-0 cursor-pointer transition-colors ${
+                                        acao === op
+                                            ? "text-white"
+                                            : "bg-white text-gray-700"
+                                    }`}
+                                    style={acao === op ? { background: "#C41E2A" } : {}}
+                                >
+                                    {op === "checkin" ? "Checkin" : "Checkout"}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Campos extras de checkout */}
+                    {acao === "checkout" && (
+                        <div className="grid grid-cols-2 gap-3">
+                            {[
+                                ["prevencoesManha", "Prevenções manhã"],
+                                ["prevencoesTarde", "Prevenções tarde"],
+                                ["lesoesAguaVivaManha", "Água-viva manhã"],
+                                ["lesoesAguaVivaTarde", "Água-viva tarde"],
+                            ].map(([campo, label]) => (
+                                <div key={campo}>
+                                    <label className="block text-xs font-bold tracking-widest uppercase mb-1.5 text-gray-700">
+                                        {label}
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        value={form[campo]}
+                                        onChange={(e) => setForm((atual) => ({ ...atual, [campo]: e.target.value }))}
+                                        className="w-full px-3 py-2.5 text-sm text-gray-900 bg-gray-100 border border-gray-300 rounded focus:outline-none focus:border-red-600 focus:bg-white focus:ring-2 focus:ring-red-100 transition-all"
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Fotos */}
+                    <div>
+                        <label className="block text-xs font-bold tracking-widest uppercase mb-1.5 text-gray-700">
+                            Fotos ({fotos.length}/3)
+                        </label>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={selecionarFotos}
+                            className="w-full text-sm text-gray-700 bg-gray-100 border border-gray-300 rounded px-3 py-2.5 file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-bold file:bg-gray-200 file:text-gray-700 focus:outline-none focus:border-red-600 focus:ring-2 focus:ring-red-100 transition-all"
+                        />
+                    </div>
+
+                    {/* Botão */}
+                    <button
+                        type="button"
+                        onClick={enviar}
+                        disabled={loading}
+                        className="w-full py-2.5 mt-1 rounded text-sm font-bold text-white tracking-wide transition-colors duration-150 flex items-center justify-center gap-2"
+                        style={{ background: loading ? "#e0a0a4" : "#C41E2A" }}
+                        onMouseEnter={e => { if (!loading) e.currentTarget.style.background = "#a01820"; }}
+                        onMouseLeave={e => { if (!loading) e.currentTarget.style.background = "#C41E2A"; }}
+                    >
+                        {loading ? (
+                            <>
+                                <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.4 0 0 5.4 0 12h4z" />
+                                </svg>
+                                Registrando...
+                            </>
+                        ) : `Registrar ${acao === "checkin" ? "checkin" : "checkout"}`}
+                    </button>
+
+                    {postoSelecionado && (
+                        <p className="text-xs text-gray-500 text-center">Posto selecionado: <strong>{postoSelecionado.nome}</strong></p>
+                    )}
                 </div>
-
-                <button className="primary" onClick={enviar} disabled={loading}>
-                    {loading ? "Registrando..." : `Registrar ${acao === "checkin" ? "checkin" : "checkout"}`}
-                </button>
-
-                {postoSelecionado && <p className="muted">Posto selecionado: {postoSelecionado.nome}</p>}
-            </section>
+            </div>
         </main>
     );
 }
@@ -276,9 +361,7 @@ export function Dashboard() {
             .catch(logout);
     }, [logout]);
 
-    useEffect(() => {
-        carregarPostos();
-    }, [carregarPostos]);
+    useEffect(() => { carregarPostos(); }, [carregarPostos]);
 
     useEffect(() => {
         if (usuario?.tipo === "ADMIN") carregarChecks();
@@ -297,103 +380,110 @@ export function Dashboard() {
         }
     };
 
-    if (!usuario) return <p className="loading">Validando credenciais...</p>;
+    if (!usuario) {
+        return (
+            <div className="min-h-screen flex items-center justify-center" style={{ background: "#e7e7e7" }}>
+                <p className="text-sm text-gray-500 font-medium">Validando credenciais...</p>
+            </div>
+        );
+    }
 
     return (
-        <>
-            <style>{`
-                body { margin: 0; background: #f5f7fb; color: #162033; font-family: Arial, sans-serif; }
-                .topbar { height: 64px; padding: 0 28px; display: flex; align-items: center; justify-content: space-between; background: #fff; border-bottom: 1px solid #e5e7eb; position: sticky; top: 0; z-index: 10; }
-                .brand { font-weight: 800; letter-spacing: .02em; }
-                .nav { display: flex; gap: 12px; align-items: center; }
-                .nav a, .nav button { border: 1px solid #d8dee9; background: #fff; color: #162033; border-radius: 8px; padding: 9px 12px; text-decoration: none; font-weight: 700; cursor: pointer; }
-                .page { padding: 28px; max-width: 1180px; margin: 0 auto; }
-                .admin-header, .operator-panel { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 22px; box-shadow: 0 8px 28px rgba(15,23,42,.06); }
-                .admin-header { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin-bottom: 18px; }
-                h1, h2 { margin: 0; }
-                h1 { font-size: 26px; }
-                h2 { font-size: 20px; }
-                .eyebrow { margin: 0 0 4px; color: #64748b; font-size: 12px; text-transform: uppercase; font-weight: 800; }
-                .muted { color: #64748b; font-size: 14px; }
-                .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; }
-                .posto-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 18px; }
-                .posto-card header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
-                .focus-tag { background: #eff6ff; color: #1d4ed8; border-radius: 999px; padding: 6px 10px; font-size: 12px; font-weight: 800; }
-                .checks-grid { display: grid; gap: 12px; }
-                .check-panel { border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px; }
-                .check-panel.active { border-color: #2563eb; box-shadow: inset 4px 0 0 #2563eb; }
-                .check-head { display: flex; justify-content: space-between; gap: 10px; align-items: center; }
-                .status-pill { display: inline-flex; align-items: center; gap: 7px; border-radius: 999px; padding: 7px 10px; font-size: 12px; font-weight: 800; white-space: nowrap; }
-                .dot { width: 8px; height: 8px; border-radius: 999px; }
-                .photos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
-                .foto { aspect-ratio: 4 / 3; border: 1px solid #dbe2ea; border-radius: 8px; overflow: hidden; position: relative; background: #f1f5f9; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 13px; font-weight: 700; }
-                .foto img { width: 100%; height: 100%; object-fit: cover; }
-                .delete-photo { position: absolute; right: 6px; bottom: 6px; border: 0; background: #dc2626; color: #fff; border-radius: 6px; padding: 5px 7px; font-size: 11px; cursor: pointer; }
-                .metrics { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 10px; color: #475569; font-size: 13px; }
-                .operator-panel { max-width: 720px; margin: 0 auto; display: grid; gap: 18px; }
-                .field { display: grid; gap: 7px; }
-                label { font-size: 13px; font-weight: 800; color: #334155; }
-                select, input { min-height: 42px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 0 12px; font-size: 15px; background: #fff; }
-                input[type="file"] { padding: 10px; }
-                .segmented { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; }
-                .segmented button { height: 44px; border: 0; background: #fff; font-weight: 800; cursor: pointer; }
-                .segmented button.selected { background: #1d4ed8; color: #fff; }
-                .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-                .primary { height: 48px; border: 0; background: #facc15; color: #1f2937; border-radius: 8px; font-weight: 900; cursor: pointer; }
-                .primary:disabled { opacity: .6; cursor: wait; }
-                .toast { position: fixed; right: 22px; bottom: 22px; background: #0f172a; color: #fff; padding: 14px 16px; border-radius: 8px; font-weight: 800; box-shadow: 0 10px 30px rgba(15,23,42,.25); z-index: 20; }
-                .toast.error { background: #991b1b; }
-                .loading { padding: 30px; }
-                @media (max-width: 720px) {
-                    .topbar, .admin-header { align-items: flex-start; flex-direction: column; height: auto; padding: 16px; }
-                    .page { padding: 16px; }
-                    .cards, .form-grid { grid-template-columns: 1fr; }
-                    .photos { grid-template-columns: repeat(2, 1fr); }
-                }
-            `}</style>
-
-            <header className="topbar">
-                <div>
-                    <div className="brand">Sistema CBMSC</div>
-                    <div className="muted">{usuario.email} · {usuario.tipo === "ADMIN" ? "Administrador" : "Salva-vidas"}</div>
+        <div className="min-h-screen" style={{ background: "#e7e7e7" }}>
+            {/* Topbar */}
+            <header className="sticky top-0 z-10 bg-white border-b border-gray-300 shadow-sm">
+                {/* Linha vermelha no topo */}
+                <div className="h-[3px]" style={{ background: "#C41E2A" }} />
+                <div className="flex items-center justify-between px-6 py-3">
+                    <div>
+                        <div className="font-bold text-gray-900 tracking-wide" style={{ fontFamily: "'Georgia', serif" }}>
+                            Sistema CBMSC
+                        </div>
+                        <div className="text-xs text-gray-500 mt-0.5">
+                            {usuario.email}
+                            <span className="mx-1.5 text-gray-300">·</span>
+                            <span className="font-semibold" style={{ color: "#C41E2A" }}>
+                                {usuario.tipo === "ADMIN" ? "Administrador" : "Salva-vidas"}
+                            </span>
+                        </div>
+                    </div>
+                    <nav className="flex items-center gap-2">
+                        {usuario.tipo === "ADMIN" && (
+                            <Link
+                                to="/cadastro-posto"
+                                className="border border-gray-300 bg-white text-gray-700 rounded px-3 py-2 text-xs font-bold tracking-wide no-underline hover:border-gray-400 transition-colors"
+                            >
+                                Postos
+                            </Link>
+                        )}
+                        <button
+                            onClick={logout}
+                            className="border border-gray-300 bg-white text-gray-700 rounded px-3 py-2 text-xs font-bold tracking-wide cursor-pointer hover:border-gray-400 transition-colors"
+                        >
+                            Sair
+                        </button>
+                    </nav>
                 </div>
-                <nav className="nav">
-                    {usuario.tipo === "ADMIN" && <Link to="/cadastro-posto">Postos</Link>}
-                    <button onClick={logout}>Sair</button>
-                </nav>
             </header>
 
             {usuario.tipo === "ADMIN" ? (
-                <main className="page">
-                    <section className="admin-header">
-                        <div>
-                            <p className="eyebrow">Acompanhamento diário</p>
-                            <h1>Checks dos postos</h1>
-                        </div>
-
-                        <div className="admin-actions">
-                            <div className="segmented admin-tabs">
-                                <button
-                                    className={abaAdmin === "checkin" ? "selected" : ""}
-                                    onClick={() => setAbaAdmin("checkin")}
-                                >
-                                    Checkin
-                                </button>
-
-                                <button
-                                    className={abaAdmin === "checkout" ? "selected" : ""}
-                                    onClick={() => setAbaAdmin("checkout")}
-                                >
-                                    Checkout
-                                </button>
+                <main className="px-4 py-6 max-w-6xl mx-auto">
+                    {/* Header admin */}
+                    <div className="mb-1">
+                        <div className="h-[3px] rounded-t w-full" style={{ background: "#C41E2A" }} />
+                    </div>
+                    <div className="bg-white border border-gray-300 rounded-b shadow-sm mb-5">
+                        <div className="px-6 pt-5 pb-4 bg-gray-50 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                            <div>
+                                <p className="text-[11px] font-bold tracking-widest uppercase mb-0.5" style={{ color: "#C41E2A" }}>
+                                    Acompanhamento diário
+                                </p>
+                                <h1 className="text-lg font-bold text-gray-900 m-0" style={{ fontFamily: "'Georgia', serif" }}>
+                                    Checks dos postos
+                                </h1>
                             </div>
 
-                            <button className="primary" onClick={carregarChecks}>
-                                Atualizar
-                            </button>
+                            <div className="flex items-center gap-2">
+                                {/* Segmented tabs */}
+                                <div className="grid grid-cols-2 border border-gray-300 rounded overflow-hidden">
+                                    {["checkin", "checkout"].map((aba) => (
+                                        <button
+                                            key={aba}
+                                            type="button"
+                                            onClick={() => setAbaAdmin(aba)}
+                                            className={`h-9 px-4 text-xs font-bold border-0 cursor-pointer transition-colors ${
+                                                abaAdmin === aba ? "text-white" : "bg-white text-gray-700"
+                                            }`}
+                                            style={abaAdmin === aba ? { background: "#C41E2A" } : {}}
+                                        >
+                                            {aba === "checkin" ? "Checkin" : "Checkout"}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={carregarChecks}
+                                    className="h-9 px-4 rounded text-xs font-bold text-white border-0 cursor-pointer transition-colors"
+                                    style={{ background: "#C41E2A" }}
+                                    onMouseEnter={e => { e.currentTarget.style.background = "#a01820"; }}
+                                    onMouseLeave={e => { e.currentTarget.style.background = "#C41E2A"; }}
+                                >
+                                    Atualizar
+                                </button>
+                            </div>
                         </div>
-                    </section>
-                    <section className="cards">
+
+                        {/* Rodapé do cabeçalho */}
+                        <div className="px-6 py-2 bg-gray-100 border-b border-gray-200">
+                            <p className="text-xs text-gray-500">
+                                {checks.length} posto{checks.length !== 1 ? "s" : ""} monitorado{checks.length !== 1 ? "s" : ""}
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Grid de cards */}
+                    <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))" }}>
                         {checks.map((item) => (
                             <AdminPostoCard
                                 key={item.postoId}
@@ -402,13 +492,23 @@ export function Dashboard() {
                                 onDeletePhoto={excluirFoto}
                             />
                         ))}
-                    </section>
+                    </div>
                 </main>
             ) : (
                 <GuardaVidasPanel postos={postos} showToast={showToast} />
             )}
 
-            {toast && <div className={`toast ${toast.type === "error" ? "error" : ""}`}>{toast.msg}</div>}
-        </>
+            {/* Toast */}
+            {toast && (
+                <div
+                    className={`fixed right-5 bottom-5 z-20 px-4 py-3 rounded shadow-lg text-sm font-bold text-white ${
+                        toast.type === "error" ? "" : ""
+                    }`}
+                    style={{ background: toast.type === "error" ? "#991b1b" : "#162033" }}
+                >
+                    {toast.msg}
+                </div>
+            )}
+        </div>
     );
 }
