@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Navigate } from "react-router-dom";
+import { Header } from "./Header";
 
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
 const API = `${API_URL}/postos`;
@@ -9,7 +10,7 @@ const authHeaders = () => ({
 });
 
 // ── Icons ──────────────────────────────────────────────────────────────────
-const Icon = ({ d, size = 18, strokeWidth = 2, className = "" }) => (
+const Icon = ({ d, size = 18, strokeWidth = 1.5, className = "" }) => (
   <svg
     width={size} height={size} viewBox="0 0 24 24"
     fill="none" stroke="currentColor"
@@ -23,16 +24,16 @@ const Icon = ({ d, size = 18, strokeWidth = 2, className = "" }) => (
 );
 
 const ICONS = {
-  flame:   ["M12 2c0 6-6 8-6 13a6 6 0 0 0 12 0c0-5-6-7-6-13z","M12 12c0 3-2 4-2 6a2 2 0 0 0 4 0c0-2-2-3-2-6z"],
-  plus:    "M12 5v14M5 12h14",
-  edit:    ["M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7","M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"],
-  trash:   ["M3 6h18","M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6","M10 11v6M14 11v6","M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"],
-  search:  ["M21 21l-4.35-4.35","M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0"],
-  close:   "M18 6L6 18M6 6l12 12",
-  check:   "M20 6L9 17l-5-5",
-  alert:   ["M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z","M12 9v4","M12 17h.01"],
-  refresh: "M4 4v5h5M20 20v-5h-5M4 9a9 9 0 0 1 15-4.5M20 15a9 9 0 0 1-15 4.5",
-  building:["M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z","M9 22V12h6v10"],
+  flame:    ["M12 2c0 6-6 8-6 13a6 6 0 0 0 12 0c0-5-6-7-6-13z", "M12 12c0 3-2 4-2 6a2 2 0 0 0 4 0c0-2-2-3-2-6z"],
+  plus:     "M12 5v14M5 12h14",
+  edit:     ["M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7", "M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"],
+  trash:    ["M3 6h18", "M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6", "M10 11v6M14 11v6", "M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"],
+  search:   ["M21 21l-4.35-4.35", "M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0"],
+  close:    "M18 6L6 18M6 6l12 12",
+  check:    "M20 6L9 17l-5-5",
+  alert:    ["M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z", "M12 9v4", "M12 17h.01"],
+  refresh:  "M4 4v5h5M20 20v-5h-5M4 9a9 9 0 0 1 15-4.5M20 15a9 9 0 0 1-15 4.5",
+  building: ["M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z", "M9 22V12h6v10"],
 };
 
 // ── Toast ──────────────────────────────────────────────────────────────────
@@ -41,13 +42,16 @@ function Toast({ toast }) {
   const isError = toast.type === "error";
   return (
     <div
-      className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-2xl border
-        ${isError ? "bg-red-950 border-red-700 text-red-200" : "bg-zinc-900 border-yellow-500 text-yellow-100"}`}
-      style={{ animation: "slideUp .25s ease" }}
+      className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3 rounded shadow-lg border text-sm font-medium
+        ${isError
+          ? "bg-white border-red-300 text-red-700"
+          : "bg-white border-green-300 text-green-700"
+        }`}
+      style={{ animation: "slideUp .2s ease" }}
     >
-      <Icon d={isError ? ICONS.alert : ICONS.check} size={17}
-        className={isError ? "text-red-400" : "text-yellow-400"} />
-      <span className="text-sm font-semibold">{toast.msg}</span>
+      <Icon d={isError ? ICONS.alert : ICONS.check} size={16}
+        className={isError ? "text-red-500" : "text-green-500"} />
+      {toast.msg}
     </div>
   );
 }
@@ -55,31 +59,32 @@ function Toast({ toast }) {
 // ── Confirm Modal ──────────────────────────────────────────────────────────
 function ConfirmModal({ posto, onConfirm, onCancel }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-      <div className="bg-zinc-900 border border-red-800 rounded-2xl w-full max-w-sm p-6 shadow-2xl">
-        <div className="flex gap-4 mb-5">
-          <div className="w-12 h-12 rounded-xl bg-red-950 border border-red-800 flex items-center justify-center shrink-0">
-            <Icon d={ICONS.alert} size={22} className="text-red-400" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+      <div className="bg-white border border-gray-200 rounded shadow-lg w-full max-w-sm p-6">
+        <div className="flex gap-3 mb-5">
+          <div className="shrink-0 w-10 h-10 rounded-full bg-red-50 border border-red-200 flex items-center justify-center">
+            <Icon d={ICONS.alert} size={18} className="text-red-600" />
           </div>
           <div>
-            <p className="text-white font-bold text-base mb-1">Confirmar exclusão</p>
-            <p className="text-zinc-400 text-sm leading-relaxed">
-              O posto{" "}
-              <span className="text-red-300 font-semibold">"{posto.nome}"</span>{" "}
-              será removido permanentemente.
+            <p className="text-gray-900 font-semibold text-sm mb-1">Confirmar exclusão</p>
+            <p className="text-gray-500 text-sm leading-relaxed">
+              O posto <span className="font-semibold text-gray-700">"{posto.nome}"</span> será removido permanentemente.
             </p>
           </div>
         </div>
         <div className="flex gap-3">
           <button
             onClick={onCancel}
-            className="flex-1 h-10 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-sm font-semibold transition-colors"
+            className="flex-1 h-9 rounded text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors"
           >
             Cancelar
           </button>
           <button
             onClick={onConfirm}
-            className="flex-1 h-10 rounded-lg bg-red-700 hover:bg-red-600 text-white text-sm font-bold transition-colors"
+            className="flex-1 h-9 rounded text-sm font-semibold text-white transition-colors"
+            style={{ background: "#C41E2A" }}
+            onMouseEnter={e => e.currentTarget.style.background = "#a01820"}
+            onMouseLeave={e => e.currentTarget.style.background = "#C41E2A"}
           >
             Sim, remover
           </button>
@@ -132,28 +137,25 @@ function FormModal({ editData, onClose, onSaved, showToast }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-      <div className="bg-zinc-900 border border-zinc-700 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+      <div className="bg-white border border-gray-200 rounded shadow-lg w-full max-w-md overflow-hidden">
 
         {/* Header */}
-        <div className="bg-red-800 px-6 py-4 flex items-center justify-between"
-          style={{ background: "repeating-linear-gradient(-45deg,#991b1b,#991b1b 8px,#b91c1c 8px,#b91c1c 16px)" }}>
-          <div style={{ background: "rgba(0,0,0,.25)", borderRadius: 12, padding: "8px 14px", display: "flex", alignItems: "center", gap: 12 }}>
-            <div className="w-8 h-8 rounded-lg bg-yellow-400 flex items-center justify-center">
-              <Icon d={ICONS.flame} size={17} className="text-red-900" strokeWidth={2.5} />
-            </div>
+        <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Icon d={ICONS.building} size={18} className="text-gray-400" />
             <div>
-              <p className="text-white font-extrabold text-sm tracking-wide uppercase">
+              <p className="text-sm font-semibold text-gray-800">
                 {isEditing ? "Editar Posto" : "Novo Posto"}
               </p>
-              <p className="text-red-300 text-xs">Corpo de Bombeiros</p>
+              <p className="text-xs text-gray-400">Corpo de Bombeiros Militar</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-9 h-9 flex items-center justify-center rounded-xl bg-black/30 hover:bg-black/50 text-red-200 transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-200 text-gray-400 hover:text-gray-600 transition-colors"
           >
-            <Icon d={ICONS.close} size={16} />
+            <Icon d={ICONS.close} size={15} />
           </button>
         </div>
 
@@ -161,9 +163,8 @@ function FormModal({ editData, onClose, onSaved, showToast }) {
         <div className="p-6 flex flex-col gap-5">
           {/* Nome */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-widest text-zinc-400 mb-2">
-              Nome do Posto{" "}
-              <span className="text-red-500 normal-case tracking-normal font-normal">*obrigatório</span>
+            <label className="block text-xs font-bold tracking-widest uppercase mb-1.5 text-gray-600">
+              Nome do Posto <span className="normal-case tracking-normal font-normal text-red-500">*obrigatório</span>
             </label>
             <input
               type="text"
@@ -171,16 +172,16 @@ function FormModal({ editData, onClose, onSaved, showToast }) {
               onChange={set("nome")}
               maxLength={200}
               placeholder="Ex.: 1º Batalhão de Bombeiros Militares"
-              className={`w-full bg-zinc-800 text-white text-sm placeholder-zinc-600 rounded-xl px-4 h-11
-                border outline-none transition-all
+              className={`w-full pl-4 pr-4 py-2.5 text-sm text-gray-900 bg-gray-100 border rounded
+                focus:outline-none focus:bg-white transition-all placeholder-gray-400
                 ${errors.nome
-                  ? "border-red-500 focus:border-red-400 focus:ring-1 focus:ring-red-500"
-                  : "border-zinc-700 focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500/40"
+                  ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100"
+                  : "border-gray-300 focus:border-red-600 focus:ring-2 focus:ring-red-100"
                 }`}
             />
-            <div className="flex justify-between mt-1.5">
-              <p className="text-xs text-red-400">{errors.nome || ""}</p>
-              <p className={`text-xs ${form.nome.length > 180 ? "text-yellow-400" : "text-zinc-600"}`}>
+            <div className="flex justify-between mt-1">
+              <p className="text-xs text-red-500">{errors.nome || ""}</p>
+              <p className={`text-xs ${form.nome.length > 180 ? "text-amber-500" : "text-gray-400"}`}>
                 {form.nome.length}/200
               </p>
             </div>
@@ -188,9 +189,8 @@ function FormModal({ editData, onClose, onSaved, showToast }) {
 
           {/* Descrição */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-widest text-zinc-400 mb-2">
-              Descrição{" "}
-              <span className="text-zinc-600 normal-case tracking-normal font-normal">(opcional)</span>
+            <label className="block text-xs font-bold tracking-widest uppercase mb-1.5 text-gray-600">
+              Descrição <span className="normal-case tracking-normal font-normal text-gray-400">(opcional)</span>
             </label>
             <textarea
               value={form.descricao}
@@ -198,16 +198,16 @@ function FormModal({ editData, onClose, onSaved, showToast }) {
               maxLength={250}
               rows={3}
               placeholder="Localização, jurisdição, responsável..."
-              className={`w-full bg-zinc-800 text-white text-sm placeholder-zinc-600 rounded-xl px-4 py-3
-                border outline-none resize-none transition-all leading-relaxed
+              className={`w-full px-4 py-2.5 text-sm text-gray-900 bg-gray-100 border rounded
+                focus:outline-none focus:bg-white resize-none transition-all placeholder-gray-400 leading-relaxed
                 ${errors.descricao
-                  ? "border-red-500 focus:border-red-400 focus:ring-1 focus:ring-red-500"
-                  : "border-zinc-700 focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500/40"
+                  ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100"
+                  : "border-gray-300 focus:border-red-600 focus:ring-2 focus:ring-red-100"
                 }`}
             />
-            <div className="flex justify-between mt-1.5">
-              <p className="text-xs text-red-400">{errors.descricao || ""}</p>
-              <p className={`text-xs ${form.descricao.length > 230 ? "text-yellow-400" : "text-zinc-600"}`}>
+            <div className="flex justify-between mt-1">
+              <p className="text-xs text-red-500">{errors.descricao || ""}</p>
+              <p className={`text-xs ${form.descricao.length > 230 ? "text-amber-500" : "text-gray-400"}`}>
                 {form.descricao.length}/250
               </p>
             </div>
@@ -217,27 +217,29 @@ function FormModal({ editData, onClose, onSaved, showToast }) {
           <div className="flex gap-3 pt-1">
             <button
               onClick={onClose}
-              className="flex-1 h-11 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 text-sm font-semibold transition-all"
+              className="flex-1 h-10 rounded text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors"
             >
               Cancelar
             </button>
             <button
               onClick={handleSubmit}
               disabled={loading}
-              className={`flex-[2] h-11 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2
-                ${loading
-                  ? "bg-red-900 text-red-400 cursor-not-allowed"
-                  : "bg-red-700 hover:bg-red-600 active:scale-[0.98] text-white shadow-lg shadow-red-900/40"
-                }`}
+              className="flex-[2] h-10 rounded text-sm font-semibold text-white flex items-center justify-center gap-2 transition-colors"
+              style={{ background: loading ? "#e0a0a4" : "#C41E2A" }}
+              onMouseEnter={e => { if (!loading) e.currentTarget.style.background = "#a01820"; }}
+              onMouseLeave={e => { if (!loading) e.currentTarget.style.background = "#C41E2A"; }}
             >
               {loading ? (
                 <>
-                  <span className="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
+                  <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.4 0 0 5.4 0 12h4z"/>
+                  </svg>
                   Salvando...
                 </>
               ) : (
                 <>
-                  <Icon d={ICONS.check} size={16} strokeWidth={2.5} />
+                  <Icon d={ICONS.check} size={15} />
                   {isEditing ? "Salvar Alterações" : "Criar Posto"}
                 </>
               )}
@@ -252,16 +254,16 @@ function FormModal({ editData, onClose, onSaved, showToast }) {
 // ── Skeleton Row ───────────────────────────────────────────────────────────
 function SkeletonRow() {
   return (
-    <tr className="border-b border-zinc-800/60">
-      {[12, 38, 28].map((w, i) => (
-        <td key={i} className="px-5 py-4">
-          <div className="h-3.5 bg-zinc-800 rounded-full animate-pulse" style={{ width: `${w}%` }} />
+    <tr className="border-b border-gray-100">
+      {[10, 35, 30].map((w, i) => (
+        <td key={i} className="px-4 py-3.5">
+          <div className="h-3 bg-gray-200 rounded animate-pulse" style={{ width: `${w}%` }} />
         </td>
       ))}
-      <td className="px-5 py-4">
+      <td className="px-4 py-3.5">
         <div className="flex gap-2 justify-end">
-          <div className="h-8 w-8 bg-zinc-800 rounded-lg animate-pulse" />
-          <div className="h-8 w-8 bg-zinc-800 rounded-lg animate-pulse" />
+          <div className="h-7 w-7 bg-gray-200 rounded animate-pulse" />
+          <div className="h-7 w-7 bg-gray-200 rounded animate-pulse" />
         </div>
       </td>
     </tr>
@@ -327,165 +329,94 @@ export function CadastroPosto() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700;800;900&family=Barlow+Condensed:wght@700;800;900&display=swap');
-        body { font-family: 'Barlow', sans-serif; }
-        .font-display { font-family: 'Barlow Condensed', sans-serif; }
-        @keyframes slideUp  { from { opacity:0; transform:translateY(12px) } to { opacity:1; transform:translateY(0) } }
-        @keyframes fadeInRow{ from { opacity:0; transform:translateX(-4px) } to { opacity:1; transform:translateX(0) } }
-        .row-anim { animation: fadeInRow .2s ease both; }
+        @keyframes slideUp { from { opacity:0; transform:translateY(8px) } to { opacity:1; transform:translateY(0) } }
       `}</style>
 
-      <div className="min-h-screen bg-zinc-950 text-white">
+      <div className="min-h-screen" style={{ background: "#e7e7e7" }}>
 
         {/* ── Header ──────────────────────────────────────────────────── */}
-        <header
-          className="relative overflow-hidden"
-          style={{
-            background: "repeating-linear-gradient(-45deg,#7f1d1d,#7f1d1d 10px,#991b1b 10px,#991b1b 20px)",
-            borderBottom: "3px solid #fbbf24",
-          }}
-        >
-          {/* Dark overlay for readability */}
-          <div className="absolute inset-0 bg-black/30 pointer-events-none" />
+        <Header />
 
-          <div className="relative max-w-5xl mx-auto px-6 py-5 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              {/* Emblem */}
-              <div className="w-14 h-14 rounded-2xl bg-yellow-400 flex items-center justify-center shadow-xl shadow-black/40 border-2 border-yellow-300">
-                <Icon d={ICONS.flame} size={28} className="text-red-900" strokeWidth={2.5} />
-              </div>
-              <div>
-                <h1 className="font-display text-3xl font-black tracking-widest text-white uppercase leading-none drop-shadow-lg">
-                  Corpo de Bombeiros
-                </h1>
-                <div className="flex items-center gap-2 mt-1">
-                  <div className="h-px flex-1 bg-yellow-400/60" />
-                  <p className="text-yellow-300 text-xs font-bold tracking-[.2em] uppercase">
-                    Sistema de Gestão Operacional
-                  </p>
-                  <div className="h-px flex-1 bg-yellow-400/60" />
-                </div>
-              </div>
-            </div>
-
-            <div className="hidden sm:flex items-center gap-2 bg-black/40 border border-yellow-500/30 rounded-xl px-4 py-2.5">
-              <span className="w-2 h-2 rounded-full bg-green-400" style={{ boxShadow: "0 0 6px #4ade80" }} />
-              <span className="text-zinc-300 text-xs font-semibold uppercase tracking-widest">Online</span>
-            </div>
-          </div>
-        </header>
-
-        {/* ── Breadcrumb ──────────────────────────────────────────────── */}
-        <div className="bg-zinc-900 border-b border-zinc-800">
-          <div className="max-w-5xl mx-auto px-6 py-2.5 flex items-center gap-2 text-xs text-zinc-600">
-            <Icon d={ICONS.building} size={13} />
-            <span>Gestão</span>
-            <span>/</span>
-            <span className="text-zinc-400 font-semibold">Postos</span>
-          </div>
-        </div>
 
         {/* ── Main content ────────────────────────────────────────────── */}
         <main className="max-w-5xl mx-auto px-6 py-8">
 
-          {/* Title row */}
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-7">
-            <div>
-              <h2 className="font-display text-4xl font-black uppercase tracking-wide leading-none text-white">
-                Postos Cadastrados
-              </h2>
-              <p className="text-zinc-500 text-sm mt-1.5 flex items-center gap-2">
-                <Icon d={ICONS.building} size={13} className="text-red-500" />
-                Gerencie os postos ativos do Corpo de Bombeiros
-              </p>
-            </div>
-            <button
-              onClick={openNew}
-              className="flex items-center gap-2.5 bg-red-700 hover:bg-red-600 active:scale-95
-                text-white font-black text-sm uppercase tracking-widest
-                px-6 h-12 rounded-xl transition-all shadow-xl shadow-red-900/60
-                border border-red-500/30 shrink-0"
-            >
-              <Icon d={ICONS.plus} size={18} strokeWidth={2.8} />
-              Novo Posto
-            </button>
-          </div>
+          {/* Card wrapper */}
+          <div className="bg-white border border-gray-300 rounded shadow-sm overflow-hidden">
 
-          {/* Stats + Search */}
-          <div className="flex flex-col sm:flex-row gap-3 mb-5">
-            {/* Stats cards */}
-            <div className="flex gap-3 shrink-0">
-              <div className="bg-zinc-900 border border-zinc-800 rounded-xl px-5 py-3 flex items-center gap-3 min-w-[110px]">
-                <span className="font-display text-3xl font-black text-yellow-400 leading-none">
-                  {postos.length}
+            {/* Card header */}
+            <div className="px-6 py-5 border-b border-gray-200 bg-gray-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-base font-bold text-gray-900">Postos Cadastrados</h2>
+                <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1.5">
+                  <Icon d={ICONS.building} size={12} className="text-gray-400" />
+                  Gerencie os postos ativos do Corpo de Bombeiros
+                </p>
+              </div>
+              <button
+                onClick={openNew}
+                className="flex items-center gap-2 text-sm font-semibold text-white px-5 h-9 rounded transition-colors shrink-0"
+                style={{ background: "#C41E2A" }}
+                onMouseEnter={e => e.currentTarget.style.background = "#a01820"}
+                onMouseLeave={e => e.currentTarget.style.background = "#C41E2A"}
+              >
+                <Icon d={ICONS.plus} size={16} />
+                Novo Posto
+              </button>
+            </div>
+
+            {/* Search + stats */}
+            <div className="px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row gap-3 items-center">
+              {/* Search */}
+              <div className="flex-1 relative">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                  <Icon d={ICONS.search} size={14} />
+                </div>
+                <input
+                  type="text"
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  placeholder="Buscar por nome ou descrição..."
+                  className="w-full h-9 bg-gray-100 border border-gray-300 rounded pl-9 pr-9 text-sm text-gray-900 placeholder-gray-400
+                    focus:outline-none focus:border-red-500 focus:bg-white focus:ring-2 focus:ring-red-100 transition-all"
+                />
+                {search && (
+                  <button
+                    onClick={() => setSearch("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <Icon d={ICONS.close} size={13} />
+                  </button>
+                )}
+              </div>
+
+              {/* Stats */}
+              <div className="flex items-center gap-3 shrink-0 text-xs text-gray-500">
+                <span>
+                  <span className="font-semibold text-gray-800">{filtered.length}</span>
+                  {search && filtered.length !== postos.length
+                    ? ` de ${postos.length} postos`
+                    : ` posto${postos.length !== 1 ? "s" : ""}`}
                 </span>
-                <div className="text-zinc-600 text-[11px] font-bold uppercase tracking-wider leading-tight">
-                  Postos<br />Registrados
-                </div>
-              </div>
-              {search && filtered.length !== postos.length && (
-                <div className="bg-zinc-900 border border-red-900/50 rounded-xl px-5 py-3 flex items-center gap-3 min-w-[110px]">
-                  <span className="font-display text-3xl font-black text-red-400 leading-none">
-                    {filtered.length}
-                  </span>
-                  <div className="text-zinc-600 text-[11px] font-bold uppercase tracking-wider leading-tight">
-                    Resultados<br />Filtrados
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Search bar */}
-            <div className="flex-1 relative">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none">
-                <Icon d={ICONS.search} size={15} />
-              </div>
-              <input
-                type="text"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                placeholder="Buscar posto por nome ou descrição..."
-                className="w-full h-12 bg-zinc-900 border border-zinc-800
-                  focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500/20
-                  rounded-xl pl-10 pr-10 text-sm text-white placeholder-zinc-600
-                  outline-none transition-all"
-              />
-              {search && (
                 <button
-                  onClick={() => setSearch("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
+                  onClick={fetchPostos}
+                  disabled={loading}
+                  title="Recarregar"
+                  className="w-8 h-8 flex items-center justify-center rounded border border-gray-300 bg-gray-100 hover:bg-gray-200 text-gray-500 transition-colors"
                 >
-                  <Icon d={ICONS.close} size={15} />
+                  <Icon d={ICONS.refresh} size={14} className={loading ? "animate-spin" : ""} />
                 </button>
-              )}
+              </div>
             </div>
 
-            {/* Refresh */}
-            <button
-              onClick={fetchPostos}
-              disabled={loading}
-              title="Recarregar lista"
-              className="h-12 w-12 shrink-0 flex items-center justify-center
-                bg-zinc-900 border border-zinc-800 hover:border-zinc-600
-                rounded-xl text-zinc-500 hover:text-zinc-200 transition-all"
-            >
-              <Icon d={ICONS.refresh} size={16} className={loading ? "animate-spin" : ""} />
-            </button>
-          </div>
-
-          {/* Table */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
-            <table className="w-full border-collapse">
+            {/* Table */}
+            <table className="w-full border-collapse text-sm">
               <thead>
-                <tr style={{ background: "#111111" }} className="border-b border-zinc-800">
-                  {/* Yellow left accent */}
-                  <th className="w-1 p-0">
-                    <div className="h-full w-1 bg-yellow-400" />
-                  </th>
-                  <th className="px-4 py-3.5 text-left text-xs font-bold uppercase tracking-widest text-zinc-600 w-20">ID</th>
-                  <th className="px-4 py-3.5 text-left text-xs font-bold uppercase tracking-widest text-zinc-600">Nome do Posto</th>
-                  <th className="px-4 py-3.5 text-left text-xs font-bold uppercase tracking-widest text-zinc-600 hidden md:table-cell">Descrição</th>
-                  <th className="px-4 py-3.5 text-right text-xs font-bold uppercase tracking-widest text-zinc-600 w-28">Ações</th>
+                <tr className="border-b border-gray-200 bg-gray-50">
+                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-widest text-gray-400 w-20">ID</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-widest text-gray-400">Nome</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-widest text-gray-400 hidden md:table-cell">Descrição</th>
+                  <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-widest text-gray-400 w-24">Ações</th>
                 </tr>
               </thead>
               <tbody>
@@ -493,16 +424,16 @@ export function CadastroPosto() {
                   Array(4).fill(0).map((_, i) => <SkeletonRow key={i} />)
                 ) : filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="py-16 text-center">
-                      <div className="flex flex-col items-center gap-4">
-                        <div className="w-16 h-16 rounded-2xl bg-zinc-800 border border-zinc-700 flex items-center justify-center">
-                          <Icon d={ICONS.flame} size={30} className="text-zinc-600" />
+                    <td colSpan={4} className="py-14 text-center">
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="w-12 h-12 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center">
+                          <Icon d={ICONS.building} size={22} className="text-gray-400" />
                         </div>
                         <div>
-                          <p className="text-zinc-400 font-bold">
+                          <p className="text-gray-600 font-medium text-sm">
                             {search ? "Nenhum posto encontrado" : "Nenhum posto cadastrado"}
                           </p>
-                          <p className="text-zinc-600 text-sm mt-1">
+                          <p className="text-gray-400 text-xs mt-1">
                             {search
                               ? `Sem resultados para "${search}"`
                               : `Clique em "Novo Posto" para registrar o primeiro`}
@@ -512,60 +443,46 @@ export function CadastroPosto() {
                     </td>
                   </tr>
                 ) : (
-                  filtered.map((posto, idx) => (
+                  filtered.map((posto) => (
                     <tr
                       key={posto.id}
-                      className="border-b border-zinc-800/50 last:border-0 hover:bg-zinc-800/30 transition-colors group row-anim"
-                      style={{ animationDelay: `${idx * 40}ms` }}
+                      className="border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors"
                     >
-                      {/* Yellow accent bar */}
-                      <td className="w-1 p-0">
-                        <div className="h-full w-1 bg-transparent group-hover:bg-red-600 transition-colors" />
-                      </td>
-
-                      {/* ID */}
-                      <td className="px-4 py-4">
-                        <span className="font-display text-sm font-black text-red-500 bg-red-950/60 border border-red-900/50 px-2.5 py-0.5 rounded-lg">
+                      <td className="px-4 py-3.5">
+                        <span className="text-xs font-semibold text-red-600 bg-red-50 border border-red-100 px-2 py-0.5 rounded">
                           #{posto.id}
                         </span>
                       </td>
 
-                      {/* Nome */}
-                      <td className="px-4 py-4">
-                        <p className="text-white font-bold text-sm">{posto.nome}</p>
+                      <td className="px-4 py-3.5">
+                        <p className="text-gray-900 font-medium">{posto.nome}</p>
                         {posto.descricao && (
-                          <p className="text-zinc-600 text-xs mt-0.5 md:hidden line-clamp-1">{posto.descricao}</p>
+                          <p className="text-gray-400 text-xs mt-0.5 md:hidden line-clamp-1">{posto.descricao}</p>
                         )}
                       </td>
 
-                      {/* Descrição */}
-                      <td className="px-4 py-4 hidden md:table-cell">
+                      <td className="px-4 py-3.5 hidden md:table-cell">
                         {posto.descricao
-                          ? <p className="text-zinc-400 text-sm line-clamp-2 leading-relaxed max-w-xs">{posto.descricao}</p>
-                          : <span className="text-zinc-700 text-xs italic">Sem descrição</span>
+                          ? <p className="text-gray-500 text-sm line-clamp-2 leading-relaxed max-w-xs">{posto.descricao}</p>
+                          : <span className="text-gray-300 text-xs italic">Sem descrição</span>
                         }
                       </td>
 
-                      {/* Actions */}
-                      <td className="px-4 py-4">
+                      <td className="px-4 py-3.5">
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={() => openEdit(posto)}
-                            title="Editar posto"
-                            className="w-8 h-8 flex items-center justify-center rounded-lg
-                              bg-zinc-800 hover:bg-blue-950 border border-zinc-700 hover:border-blue-700
-                              text-zinc-500 hover:text-blue-400 transition-all"
+                            title="Editar"
+                            className="w-7 h-7 flex items-center justify-center rounded border border-gray-200 bg-white hover:bg-blue-50 hover:border-blue-200 text-gray-400 hover:text-blue-500 transition-all"
                           >
-                            <Icon d={ICONS.edit} size={14} />
+                            <Icon d={ICONS.edit} size={13} />
                           </button>
                           <button
                             onClick={() => setDeleteTarget(posto)}
-                            title="Remover posto"
-                            className="w-8 h-8 flex items-center justify-center rounded-lg
-                              bg-zinc-800 hover:bg-red-950 border border-zinc-700 hover:border-red-800
-                              text-zinc-500 hover:text-red-400 transition-all"
+                            title="Remover"
+                            className="w-7 h-7 flex items-center justify-center rounded border border-gray-200 bg-white hover:bg-red-50 hover:border-red-200 text-gray-400 hover:text-red-500 transition-all"
                           >
-                            <Icon d={ICONS.trash} size={14} />
+                            <Icon d={ICONS.trash} size={13} />
                           </button>
                         </div>
                       </td>
@@ -577,19 +494,16 @@ export function CadastroPosto() {
 
             {/* Footer */}
             {!loading && filtered.length > 0 && (
-              <div className="px-5 py-3 border-t border-zinc-800 bg-zinc-950/60 flex items-center justify-between">
-                <p className="text-zinc-700 text-xs">
-                  Exibindo <span className="text-zinc-500 font-semibold">{filtered.length}</span> de{" "}
-                  <span className="text-zinc-500 font-semibold">{postos.length}</span>{" "}
-                  posto{postos.length !== 1 ? "s" : ""}
-                </p>
-                <div className="flex items-center gap-1.5 text-zinc-700 text-xs">
-                  <Icon d={ICONS.building} size={11} />
-                  localhost:8080/postos
-                </div>
+              <div className="px-6 py-3 border-t border-gray-100 bg-gray-50 text-xs text-gray-400">
+                Exibindo {filtered.length} de {postos.length} posto{postos.length !== 1 ? "s" : ""}
               </div>
             )}
           </div>
+
+          {/* Page footer */}
+          <p className="text-center text-xs text-gray-400 mt-6">
+            © 2026 CBMSC · Todos os direitos reservados
+          </p>
         </main>
       </div>
 

@@ -1,5 +1,8 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { ModalCamera } from "./ModalCamera";
+import { Header } from "./Header";
+
 
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
 
@@ -130,6 +133,7 @@ function GuardaVidasPanel({ postos, showToast }) {
     const [postoId, setPostoId] = useState("");
     const [acao, setAcao] = useState("checkin");
     const [fotos, setFotos] = useState([]);
+    const [meusChecks, setMeusChecks] = useState([]);
     const [loading, setLoading] = useState(false);
     const [form, setForm] = useState({
         prevencoesManha: "",
@@ -137,22 +141,47 @@ function GuardaVidasPanel({ postos, showToast }) {
         lesoesAguaVivaManha: "",
         lesoesAguaVivaTarde: "",
     });
+    const [cameraAberta, setCameraAberta] = useState(false);
+    const [timestampFoto, setTimestampFoto] = useState(null);
+
+
 
     const postoSelecionado = useMemo(
         () => postos.find((posto) => String(posto.id) === String(postoId)),
         [postos, postoId]
     );
+    const checkSelecionado = useMemo(
+        () => meusChecks.find((check) => String(check.postoId) === String(postoId)),
+        [meusChecks, postoId]
+    );
+    const fotosSalvas = checkSelecionado?.[acao]?.fotos || [];
+    const totalFotos = fotosSalvas.length + fotos.length;
 
-    const selecionarFotos = (event) => {
-        const arquivos = Array.from(event.target.files || []);
-        if (arquivos.length > 3) {
-            showToast("Envie no máximo 3 fotos por ação.", "error");
-            event.target.value = "";
-            setFotos([]);
+    const carregarMeusChecks = useCallback(async () => {
+        const res = await fetch(`${API_URL}/check/meus-checks-hoje`, { headers: authHeaders() });
+        if (res.ok) {
+            setMeusChecks(await res.json());
+        }
+    }, []);
+
+    useEffect(() => {
+        carregarMeusChecks();
+    }, [carregarMeusChecks]);
+
+
+    const receberCaptura = (blob, timestamp) => {
+        if (totalFotos >= 3) {
+            showToast("Limite de 3 fotos atingido.", "error");
             return;
         }
-        setFotos(arquivos);
+        const arquivo = new File([blob], `foto_${Date.now()}.jpg`, { type: "image/jpeg" });
+        setFotos((atual) => [...atual, arquivo]);
+        setTimestampFoto(timestamp);
     };
+
+
+
+
 
     const enviar = async () => {
         if (!postoId) return showToast("Selecione um posto.", "error");
@@ -161,6 +190,8 @@ function GuardaVidasPanel({ postos, showToast }) {
         const body = new FormData();
         body.append("postoId", postoId);
         fotos.forEach((foto) => body.append("fotos", foto));
+        if (timestampFoto) body.append("timestampCaptura", timestampFoto);
+
 
         if (acao === "checkout") {
             const vazio = Object.values(form).some((valor) => valor === "");
@@ -184,6 +215,7 @@ function GuardaVidasPanel({ postos, showToast }) {
             const dados = await res.json();
             showToast(`${acao === "checkin" ? "Checkin" : "Checkout"} registrado: ${statusMeta[dados.status]?.label || "ok"}.`);
             setFotos([]);
+            await carregarMeusChecks();
         } catch (error) {
             showToast(error.message, "error");
         } finally {
@@ -237,11 +269,10 @@ function GuardaVidasPanel({ postos, showToast }) {
                                     key={op}
                                     type="button"
                                     onClick={() => setAcao(op)}
-                                    className={`h-10 text-sm font-bold border-0 cursor-pointer transition-colors ${
-                                        acao === op
-                                            ? "text-white"
-                                            : "bg-white text-gray-700"
-                                    }`}
+                                    className={`h-10 text-sm font-bold border-0 cursor-pointer transition-colors ${acao === op
+                                        ? "text-white"
+                                        : "bg-white text-gray-700"
+                                        }`}
                                     style={acao === op ? { background: "#C41E2A" } : {}}
                                 >
                                     {op === "checkin" ? "Checkin" : "Checkout"}
@@ -278,15 +309,62 @@ function GuardaVidasPanel({ postos, showToast }) {
                     {/* Fotos */}
                     <div>
                         <label className="block text-xs font-bold tracking-widest uppercase mb-1.5 text-gray-700">
-                            Fotos ({fotos.length}/3)
+                            Fotos ({totalFotos}/3)
                         </label>
-                        <input
-                            type="file"
-                            accept="image/*"
-                            multiple
-                            onChange={selecionarFotos}
-                            className="w-full text-sm text-gray-700 bg-gray-100 border border-gray-300 rounded px-3 py-2.5 file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-bold file:bg-gray-200 file:text-gray-700 focus:outline-none focus:border-red-600 focus:ring-2 focus:ring-red-100 transition-all"
-                        />
+                        {fotosSalvas.length > 0 && (
+                            <div className="grid grid-cols-3 gap-2 mb-3">
+                                {fotosSalvas.map((foto) => (
+                                    <a
+                                        key={foto.id}
+                                        href={`${API_URL}${foto.url}`}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="block aspect-[4/3] border border-gray-300 rounded overflow-hidden bg-gray-100"
+                                        title={foto.nome}
+                                    >
+                                        <img
+                                            src={`${API_URL}${foto.url}`}
+                                            alt={foto.nome}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    </a>
+                                ))}
+                            </div>
+                        )}
+                        {postoId && fotosSalvas.length === 0 && (
+                            <p className="text-xs text-gray-500 mb-2">Nenhuma foto enviada nesta ação hoje.</p>
+                        )}
+                        <button
+                            type="button"
+                            onClick={() => setCameraAberta(true)}
+                            disabled={!postoId || fotosSalvas.length >= 3}
+                            style={{
+                                background: postoId && fotosSalvas.length < 3 ? "#C41E2A" : "#e5e7eb",
+                                color: postoId && fotosSalvas.length < 3 ? "#fff" : "#9ca3af",
+                                border: "none", borderRadius: 6, padding: "10px 16px",
+                                fontWeight: "bold", cursor: "pointer", width: "100%",
+                            }}
+                        >
+                         Abrir câmera ({totalFotos}/3)
+                        </button>
+
+                        {fotos.length > 0 && (
+                            <p className="text-xs text-green-700 font-semibold">
+                                {fotos.length} foto(s) nova(s) pronta(s) para enviar
+                            </p>
+                        )}
+
+                        {cameraAberta && (
+                            <ModalCamera
+                                onCaptura={receberCaptura}
+                                onFechar={() => setCameraAberta(false)}
+                            />
+                        )}
+                        {fotosSalvas.length >= 3 && (
+                            <p className="text-xs font-semibold mt-2" style={{ color: "#C41E2A" }}>
+                                Limite de 3 fotos atingido para esta ação.
+                            </p>
+                        )}
                     </div>
 
                     {/* Botão */}
@@ -380,6 +458,52 @@ export function Dashboard() {
         }
     };
 
+    const limparDadosDoDia = async () => {
+        const confirmar = window.confirm(
+            "ATENÇÃO! Esta ação  irá excluir permanentemente todos os check-ins, check-outs e fotos do dia de hoje de todos os postos. Deseja realmente continuar?"
+        );
+        if (!confirmar) return;
+
+        try {
+            const res = await fetch(`${API_URL}/check/limpar-dados`, {
+                method: "DELETE",
+                headers: authHeaders(),
+            });
+            if (res.ok) {
+                showToast("Dados diários e fotos limpos com sucesso!");
+                carregarChecks();
+            } else {
+                const erro = await res.json().catch(() => ({}));
+                throw new Error(erro.message || "Erro ao limpar dados.");
+            }
+        } catch (error) {
+            showToast(error.message, "error");
+        }
+    };
+
+    const baixarRelatorio = async () => {
+        try {
+            const url = `${API_URL}/check/relatorio`;
+
+            const res = await fetch(url, {
+                headers: authHeaders(),
+            });
+            if (!res.ok) throw new Error("Não foi possível gerar o relatório.");
+            const blob = await res.blob();
+            const downloadUrl = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = downloadUrl;
+            a.download = `relatorio_prevencoes.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(downloadUrl);
+            showToast("Relatório de prevenções baixado com sucesso!");
+        } catch (error) {
+            showToast(error.message, "error");
+        }
+    };
+
     if (!usuario) {
         return (
             <div className="min-h-screen flex items-center justify-center" style={{ background: "#e7e7e7" }}>
@@ -391,40 +515,7 @@ export function Dashboard() {
     return (
         <div className="min-h-screen" style={{ background: "#e7e7e7" }}>
             {/* Topbar */}
-            <header className="sticky top-0 z-10 bg-white border-b border-gray-300 shadow-sm">
-                {/* Linha vermelha no topo */}
-                <div className="h-[3px]" style={{ background: "#C41E2A" }} />
-                <div className="flex items-center justify-between px-6 py-3">
-                    <div>
-                        <div className="font-bold text-gray-900 tracking-wide" style={{ fontFamily: "'Georgia', serif" }}>
-                            Sistema CBMSC
-                        </div>
-                        <div className="text-xs text-gray-500 mt-0.5">
-                            {usuario.email}
-                            <span className="mx-1.5 text-gray-300">·</span>
-                            <span className="font-semibold" style={{ color: "#C41E2A" }}>
-                                {usuario.tipo === "ADMIN" ? "Administrador" : "Salva-vidas"}
-                            </span>
-                        </div>
-                    </div>
-                    <nav className="flex items-center gap-2">
-                        {usuario.tipo === "ADMIN" && (
-                            <Link
-                                to="/cadastro-posto"
-                                className="border border-gray-300 bg-white text-gray-700 rounded px-3 py-2 text-xs font-bold tracking-wide no-underline hover:border-gray-400 transition-colors"
-                            >
-                                Postos
-                            </Link>
-                        )}
-                        <button
-                            onClick={logout}
-                            className="border border-gray-300 bg-white text-gray-700 rounded px-3 py-2 text-xs font-bold tracking-wide cursor-pointer hover:border-gray-400 transition-colors"
-                        >
-                            Sair
-                        </button>
-                    </nav>
-                </div>
-            </header>
+            <Header usuario={usuario} onLogout={logout} />
 
             {usuario.tipo === "ADMIN" ? (
                 <main className="px-4 py-6 max-w-6xl mx-auto">
@@ -451,9 +542,8 @@ export function Dashboard() {
                                             key={aba}
                                             type="button"
                                             onClick={() => setAbaAdmin(aba)}
-                                            className={`h-9 px-4 text-xs font-bold border-0 cursor-pointer transition-colors ${
-                                                abaAdmin === aba ? "text-white" : "bg-white text-gray-700"
-                                            }`}
+                                            className={`h-9 px-4 text-xs font-bold border-0 cursor-pointer transition-colors ${abaAdmin === aba ? "text-white" : "bg-white text-gray-700"
+                                                }`}
                                             style={abaAdmin === aba ? { background: "#C41E2A" } : {}}
                                         >
                                             {aba === "checkin" ? "Checkin" : "Checkout"}
@@ -471,14 +561,40 @@ export function Dashboard() {
                                 >
                                     Atualizar
                                 </button>
+
+
                             </div>
                         </div>
 
                         {/* Rodapé do cabeçalho */}
-                        <div className="px-6 py-2 bg-gray-100 border-b border-gray-200">
-                            <p className="text-xs text-gray-500">
+                        <div className="px-6 py-3 bg-gray-100 border-b border-gray-200 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                            <p className="text-xs text-gray-500 m-0">
                                 {checks.length} posto{checks.length !== 1 ? "s" : ""} monitorado{checks.length !== 1 ? "s" : ""}
                             </p>
+                            
+                            <div className="flex flex-wrap items-center gap-3">
+                                <button
+                                    type="button"
+                                    onClick={baixarRelatorio}
+                                    className="h-8 px-3 rounded text-xs font-bold text-white border-0 cursor-pointer transition-colors"
+                                    style={{ background: "#2563eb" }}
+                                    onMouseEnter={e => { e.currentTarget.style.background = "#1d4ed8"; }}
+                                    onMouseLeave={e => { e.currentTarget.style.background = "#2563eb"; }}
+                                >
+                                    Baixar Relatório XLS
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={limparDadosDoDia}
+                                    className="h-8 px-3 rounded text-xs font-bold text-white border-0 cursor-pointer transition-colors"
+                                    style={{ background: "#dc2626" }}
+                                    onMouseEnter={e => { e.currentTarget.style.background = "#b91c1c"; }}
+                                    onMouseLeave={e => { e.currentTarget.style.background = "#dc2626"; }}
+                                >
+                                    Limpar Dados do Dia
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -501,9 +617,8 @@ export function Dashboard() {
             {/* Toast */}
             {toast && (
                 <div
-                    className={`fixed right-5 bottom-5 z-20 px-4 py-3 rounded shadow-lg text-sm font-bold text-white ${
-                        toast.type === "error" ? "" : ""
-                    }`}
+                    className={`fixed right-5 bottom-5 z-20 px-4 py-3 rounded shadow-lg text-sm font-bold text-white ${toast.type === "error" ? "" : ""
+                        }`}
                     style={{ background: toast.type === "error" ? "#991b1b" : "#162033" }}
                 >
                     {toast.msg}
