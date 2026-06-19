@@ -2,6 +2,7 @@ import { Autenticacao } from "./components/Autenticacao";
 import { CadastroPosto } from "./components/CadastroPosto";
 import { Dashboard } from "./components/Dashboard";
 import { Login } from "./components/Login";
+import { CadastroUsuario } from "./components/CadastroUsuario";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 
@@ -24,6 +25,11 @@ function App() {
             < CadastroPosto />  
           </Autenticacao>
         } />  
+        <Route path='/cadastro-usuario' element={
+          <Autenticacao>
+            < CadastroUsuario />
+          </Autenticacao>
+        } />
       </Routes>
 
     </BrowserRouter>

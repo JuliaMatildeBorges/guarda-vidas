@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
+const API_URL = (process.env.REACT_APP_API_URL || process.env.REACT_APP_API || "http://localhost:8080").replace(/^['"]|['"]$/g, "");
 
 /**
  * Componente de cabeçalho reutilizável do Sistema CBMSC.
- * Apresenta informações do usuário logado (email e nível de acesso), 
+ * Apresenta informações do usuário logado (nome, CPF e nível de acesso), 
  * links de navegação condicionados ao tipo de usuário (Admin/Salva-vidas)
  * e o controle de logout.
  */
@@ -19,6 +19,8 @@ export function Header({ usuario: propUsuario, onLogout }) {
         } else {
             localStorage.removeItem("token");
             localStorage.removeItem("tipo");
+            localStorage.removeItem("nome");
+            localStorage.removeItem("cpf");
             navigate("/");
         }
     };
@@ -47,6 +49,8 @@ export function Header({ usuario: propUsuario, onLogout }) {
             .then((dados) => {
                 setUsuario(dados);
                 localStorage.setItem("tipo", dados.tipo);
+                localStorage.setItem("nome", dados.nome || "");
+                localStorage.setItem("cpf", dados.cpf || "");
             })
             .catch(() => {
                 logout();
@@ -72,7 +76,13 @@ export function Header({ usuario: propUsuario, onLogout }) {
                         Sistema CBMSC
                     </div>
                     <div className="text-xs text-gray-500 mt-0.5">
-                        {usuario.email}
+                        {usuario.nome || "Usuário"}
+                        {usuario.cpf && (
+                            <>
+                                <span className="mx-1.5 text-gray-300">·</span>
+                                {usuario.cpf}
+                            </>
+                        )}
                         <span className="mx-1.5 text-gray-300">·</span>
                         <span className="font-semibold" style={{ color: "#C41E2A" }}>
                             {usuario.tipo === "ADMIN" ? "Administrador" : "Salva-vidas"}
@@ -87,12 +97,20 @@ export function Header({ usuario: propUsuario, onLogout }) {
                         Painel
                     </Link>
                     {usuario.tipo === "ADMIN" && (
-                        <Link
-                            to="/cadastro-posto"
-                            className="border border-gray-300 bg-white text-gray-700 rounded px-3 py-2 text-xs font-bold tracking-wide no-underline hover:border-gray-400 transition-colors"
-                        >
-                            Postos
-                        </Link>
+                        <>
+                            <Link
+                                to="/cadastro-posto"
+                                className="border border-gray-300 bg-white text-gray-700 rounded px-3 py-2 text-xs font-bold tracking-wide no-underline hover:border-gray-400 transition-colors"
+                            >
+                                Postos
+                            </Link>
+                            <Link
+                                to="/cadastro-usuario"
+                                className="border border-gray-300 bg-white text-gray-700 rounded px-3 py-2 text-xs font-bold tracking-wide no-underline hover:border-gray-400 transition-colors"
+                            >
+                                Usuários
+                            </Link>
+                        </>
                     )}
                     <button
                         onClick={logout}

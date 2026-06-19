@@ -5,9 +5,19 @@ import Logo from '../assets/logo-bombeiros.png';
 
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
 
+const onlyDigits = (value) => value.replace(/\D/g, "").slice(0, 11);
+
+const formatCpf = (value) => {
+  const digits = onlyDigits(value);
+  return digits
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+};
+
 export function Login() {
   const navigate = useNavigate();
-  const [usuario, setUsuario] = useState("");
+  const [cpf, setCpf] = useState("");
   const [senha, setSenha] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -18,15 +28,18 @@ export function Login() {
       const resposta = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: usuario, senha: senha }),
+        body: JSON.stringify({ cpf: onlyDigits(cpf), senha: senha }),
       });
       if (resposta.ok) {
         const dados = await resposta.json();
         localStorage.setItem("token", dados.token);
         localStorage.setItem("tipo", dados.tipo);
+        localStorage.setItem("nome", dados.nome || "");
+        localStorage.setItem("cpf", dados.cpf || "");
         navigate("/dashboard");
       } else {
-        alert("Usuário e/ou senha incorretos. Verifique e tente novamente.");
+        const erro = await resposta.json().catch(() => ({}));
+        alert(erro.message || "CPF ou senha incorretos.");
       }
     } catch {
       alert("Erro na conexão com o servidor");
@@ -48,7 +61,7 @@ export function Login() {
 
         {/* Cabeçalho */}
         <div className="px-8 pt-7 pb-6 flex flex-col items-center text-center border-b border-gray-200 bg-gray-50">
-          <img src={Logo} className="h-20"/>  
+          <img src={Logo} alt="Corpo de Bombeiros Militar" className="h-20"/>  
           <h1 className="mt-3 text-base font-bold text-gray-900 tracking-wide" style={{ fontFamily: "'Georgia', serif" }}>
             Corpo de Bombeiros Militar
           </h1>
@@ -66,7 +79,7 @@ export function Login() {
 
           <div>
             <label className="block text-xs font-bold tracking-widest uppercase mb-1.5 text-gray-700">
-              Usuário
+              CPF
             </label>
             <div className="relative">
               <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
@@ -74,9 +87,11 @@ export function Login() {
               </svg>
               <input
                 type="text"
-                placeholder="E-mail institucional"
-                value={usuario}
-                onChange={(e) => setUsuario(e.target.value)}
+                placeholder="Digite seu CPF"
+                value={cpf}
+                onChange={(e) => setCpf(formatCpf(e.target.value))}
+                inputMode="numeric"
+                maxLength={14}
                 required
                 className="w-full pl-10 pr-4 py-2.5 text-sm text-gray-900 bg-gray-100 border border-gray-300 rounded focus:outline-none focus:border-red-600 focus:bg-white focus:ring-2 focus:ring-red-100 transition-all placeholder-gray-400"
               />

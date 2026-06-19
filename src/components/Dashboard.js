@@ -4,7 +4,7 @@ import { ModalCamera } from "./ModalCamera";
 import { Header } from "./Header";
 
 
-const API_URL = process.env.REACT_APP_API_URL;
+const API_URL = (process.env.REACT_APP_API_URL || process.env.REACT_APP_API || "http://localhost:8080").replace(/^['"]|['"]$/g, "");
 
 const statusMeta = {
     VERDE: { label: "No horário", color: "#16a34a", bg: "#dcfce7" },
@@ -141,6 +141,11 @@ function GuardaVidasPanel({ postos, showToast }) {
         lesoesAguaVivaManha: "",
         lesoesAguaVivaTarde: "",
     });
+
+    const setNumeroFormulario = (campo, valor) => {
+        const apenasNumeros = valor.replace(/\D/g, "").slice(0, 4);
+        setForm((atual) => ({ ...atual, [campo]: apenasNumeros }));
+    };
     const [cameraAberta, setCameraAberta] = useState(false);
     const [timestampFoto, setTimestampFoto] = useState(null);
 
@@ -297,8 +302,9 @@ function GuardaVidasPanel({ postos, showToast }) {
                                     <input
                                         type="number"
                                         min="0"
+                                        max="9999"
                                         value={form[campo]}
-                                        onChange={(e) => setForm((atual) => ({ ...atual, [campo]: e.target.value }))}
+                                        onChange={(e) => setNumeroFormulario(campo, e.target.value)}
                                         className="w-full px-3 py-2.5 text-sm text-gray-900 bg-gray-100 border border-gray-300 rounded focus:outline-none focus:border-red-600 focus:bg-white focus:ring-2 focus:ring-red-100 transition-all"
                                     />
                                 </div>
@@ -413,6 +419,8 @@ export function Dashboard() {
     const logout = useCallback(() => {
         localStorage.removeItem("token");
         localStorage.removeItem("tipo");
+        localStorage.removeItem("nome");
+        localStorage.removeItem("cpf");
         navigate("/");
     }, [navigate]);
 
