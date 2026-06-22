@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { ModalCamera } from "./ModalCamera";
 import { Header } from "./Header";
 
@@ -142,6 +142,20 @@ function GuardaVidasPanel({ postos, showToast }) {
         lesoesAguaVivaTarde: "",
     });
 
+    const formVazio = {
+        prevencoesManha: "",
+        prevencoesTarde: "",
+        lesoesAguaVivaManha: "",
+        lesoesAguaVivaTarde: "",
+    };
+
+    const limparDadosNaoSalvos = () => {
+        setFotos([]);
+        setTimestampFoto(null);
+        setCameraAberta(false);
+        setForm(formVazio);
+    };
+
     const setNumeroFormulario = (campo, valor) => {
         const apenasNumeros = valor.replace(/\D/g, "").slice(0, 4);
         setForm((atual) => ({ ...atual, [campo]: apenasNumeros }));
@@ -161,6 +175,11 @@ function GuardaVidasPanel({ postos, showToast }) {
     );
     const fotosSalvas = checkSelecionado?.[acao]?.fotos || [];
     const totalFotos = fotosSalvas.length + fotos.length;
+    const checkoutPreenchido = Object.values(form).every((valor) => valor !== "");
+    const podeAbrirCamera = Boolean(postoId)
+        && fotosSalvas.length < 3
+        && totalFotos < 3
+        && (acao !== "checkout" || checkoutPreenchido);
 
     const carregarMeusChecks = useCallback(async () => {
         const res = await fetch(`${API_URL}/check/meus-checks-hoje`, { headers: authHeaders() });
@@ -184,8 +203,38 @@ function GuardaVidasPanel({ postos, showToast }) {
         setTimestampFoto(timestamp);
     };
 
+    const trocarPosto = (novoPostoId) => {
+        if (novoPostoId !== postoId) {
+            limparDadosNaoSalvos();
+        }
+        setPostoId(novoPostoId);
+    };
 
+    const trocarAcao = (novaAcao) => {
+        if (novaAcao !== acao) {
+            limparDadosNaoSalvos();
+        }
+        setAcao(novaAcao);
+    };
 
+    const abrirCamera = () => {
+        if (!postoId) {
+            showToast("Selecione um posto antes de tirar a foto.", "error");
+            return;
+        }
+
+        if (acao === "checkout" && !checkoutPreenchido) {
+            showToast("Preencha todos os campos do checkout antes de tirar a foto.", "error");
+            return;
+        }
+
+        if (totalFotos >= 3) {
+            showToast("Limite de 3 fotos atingido para esta ação.", "error");
+            return;
+        }
+
+        setCameraAberta(true);
+    };
 
 
     const enviar = async () => {
@@ -253,7 +302,7 @@ function GuardaVidasPanel({ postos, showToast }) {
                         </label>
                         <select
                             value={postoId}
-                            onChange={(e) => setPostoId(e.target.value)}
+                            onChange={(e) => trocarPosto(e.target.value)}
                             className="w-full px-3 py-2.5 text-sm text-gray-900 bg-gray-100 border border-gray-300 rounded focus:outline-none focus:border-red-600 focus:bg-white focus:ring-2 focus:ring-red-100 transition-all"
                         >
                             <option value="">Escolha um posto</option>
@@ -273,7 +322,7 @@ function GuardaVidasPanel({ postos, showToast }) {
                                 <button
                                     key={op}
                                     type="button"
-                                    onClick={() => setAcao(op)}
+                                    onClick={() => trocarAcao(op)}
                                     className={`h-10 text-sm font-bold border-0 cursor-pointer transition-colors ${acao === op
                                         ? "text-white"
                                         : "bg-white text-gray-700"
@@ -342,17 +391,22 @@ function GuardaVidasPanel({ postos, showToast }) {
                         )}
                         <button
                             type="button"
-                            onClick={() => setCameraAberta(true)}
-                            disabled={!postoId || fotosSalvas.length >= 3}
+                            onClick={abrirCamera}
+                            disabled={!podeAbrirCamera}
                             style={{
-                                background: postoId && fotosSalvas.length < 3 ? "#C41E2A" : "#e5e7eb",
-                                color: postoId && fotosSalvas.length < 3 ? "#fff" : "#9ca3af",
+                                background: podeAbrirCamera ? "#C41E2A" : "#e5e7eb",
+                                color: podeAbrirCamera ? "#fff" : "#9ca3af",
                                 border: "none", borderRadius: 6, padding: "10px 16px",
-                                fontWeight: "bold", cursor: "pointer", width: "100%",
+                                fontWeight: "bold", cursor: podeAbrirCamera ? "pointer" : "not-allowed", width: "100%",
                             }}
                         >
                          Abrir câmera ({totalFotos}/3)
                         </button>
+                        {acao === "checkout" && !checkoutPreenchido && (
+                            <p className="text-xs font-semibold mt-2" style={{ color: "#C41E2A" }}>
+                                Preencha todos os campos do checkout para liberar a câmera.
+                            </p>
+                        )}
 
                         {fotos.length > 0 && (
                             <p className="text-xs text-green-700 font-semibold">

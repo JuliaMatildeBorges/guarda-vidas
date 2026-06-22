@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 const API_URL = (process.env.REACT_APP_API_URL || process.env.REACT_APP_API || "http://localhost:8080").replace(/^['"]|['"]$/g, "");
@@ -13,7 +13,7 @@ export function Header({ usuario: propUsuario, onLogout }) {
     const navigate = useNavigate();
     const [usuario, setUsuario] = useState(propUsuario || null);
 
-    const logout = () => {
+    const logout = useCallback(() => {
         if (onLogout) {
             onLogout();
         } else {
@@ -23,7 +23,7 @@ export function Header({ usuario: propUsuario, onLogout }) {
             localStorage.removeItem("cpf");
             navigate("/");
         }
-    };
+    }, [navigate, onLogout]);
 
     useEffect(() => {
         if (propUsuario) {
@@ -55,7 +55,7 @@ export function Header({ usuario: propUsuario, onLogout }) {
             .catch(() => {
                 logout();
             });
-    }, [propUsuario, navigate]);
+    }, [propUsuario, navigate, logout]);
 
     if (!usuario) {
         return (
