@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom";
 import Logo from '../assets/logo-bombeiros.png';  
+import { readApiErrorMessage } from "../utils/errorMessages";
 
 
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
@@ -38,8 +39,7 @@ export function Login() {
         localStorage.setItem("cpf", dados.cpf || "");
         navigate("/dashboard");
       } else {
-        const erro = await resposta.json().catch(() => ({}));
-        alert(erro.message || "CPF ou senha incorretos.");
+        alert(await readApiErrorMessage(resposta, "CPF ou senha incorretos."));
       }
     } catch {
       alert("Erro na conexão com o servidor");

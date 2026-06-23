@@ -18,6 +18,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Navigate } from "react-router-dom";
 import { Header } from "./Header";
+import { readApiErrorMessage, safeErrorMessage } from "../utils/errorMessages";
 
 // ── Configuração de API ───────────────────────────────────────────────────────
 // Remove aspas extras que possam vir de variáveis de ambiente mal formatadas.
@@ -254,14 +255,13 @@ function FormModal({ editData, onClose, onSaved, showToast }) {
       });
 
       if (!res.ok) {
-        const error = await res.json().catch(() => ({}));
-        throw new Error(error.message || "Não foi possível salvar o usuário.");
+        throw new Error(await readApiErrorMessage(res, "Não foi possível salvar o usuário."));
       }
 
       showToast(isEditing ? "Usuário atualizado!" : "Usuário criado com sucesso!");
       onSaved();
     } catch (err) {
-      showToast(err.message || "Erro ao salvar. Verifique o servidor.", "error");
+      showToast(safeErrorMessage(err.message, "Erro ao salvar. Verifique o servidor."), "error");
     } finally {
       setLoading(false);
     }

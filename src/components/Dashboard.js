@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { ModalCamera } from "./ModalCamera";
 import { Header } from "./Header";
+import { readApiErrorMessage, safeErrorMessage } from "../utils/errorMessages";
 
 
 const API_URL = (process.env.REACT_APP_API_URL || process.env.REACT_APP_API || "http://localhost:8080").replace(/^['"]|['"]$/g, "");
@@ -262,8 +263,7 @@ function GuardaVidasPanel({ postos, showToast }) {
             });
 
             if (!res.ok) {
-                const erro = await res.json().catch(() => ({}));
-                throw new Error(erro.message || "Erro ao registrar check.");
+                throw new Error(await readApiErrorMessage(res, "Erro ao registrar check."));
             }
 
             const dados = await res.json();
@@ -271,7 +271,7 @@ function GuardaVidasPanel({ postos, showToast }) {
             setFotos([]);
             await carregarMeusChecks();
         } catch (error) {
-            showToast(error.message, "error");
+            showToast(safeErrorMessage(error.message, "Erro ao registrar check."), "error");
         } finally {
             setLoading(false);
         }
@@ -535,11 +535,10 @@ export function Dashboard() {
                 showToast("Dados diários e fotos limpos com sucesso!");
                 carregarChecks();
             } else {
-                const erro = await res.json().catch(() => ({}));
-                throw new Error(erro.message || "Erro ao limpar dados.");
+                throw new Error(await readApiErrorMessage(res, "Erro ao limpar dados."));
             }
         } catch (error) {
-            showToast(error.message, "error");
+            showToast(safeErrorMessage(error.message, "Erro ao limpar dados."), "error");
         }
     };
 
@@ -562,7 +561,7 @@ export function Dashboard() {
             window.URL.revokeObjectURL(downloadUrl);
             showToast("Relatório de prevenções baixado com sucesso!");
         } catch (error) {
-            showToast(error.message, "error");
+            showToast(safeErrorMessage(error.message, "Não foi possível gerar o relatório."), "error");
         }
     };
 

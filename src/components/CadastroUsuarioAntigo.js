@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { Header } from "./Header";
+import { readApiErrorMessage, safeErrorMessage } from "../utils/errorMessages";
 
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
 
@@ -80,14 +81,16 @@ export function CadastroUsuario() {
       });
 
       if (!res.ok) {
-        const error = await res.json().catch(() => ({}));
-        throw new Error(error.message || "Não foi possível cadastrar o usuário.");
+        throw new Error(await readApiErrorMessage(res, "Não foi possível cadastrar o usuário."));
       }
 
       setForm({ nome: "", cpf: "", senha: "", confirmarSenha: "", perfil: "USUARIO" });
       setFeedback({ type: "success", message: "Usuário cadastrado com sucesso." });
     } catch (error) {
-      setFeedback({ type: "error", message: error.message });
+      setFeedback({
+        type: "error",
+        message: safeErrorMessage(error.message, "Não foi possível cadastrar o usuário."),
+      });
     } finally {
       setLoading(false);
     }
